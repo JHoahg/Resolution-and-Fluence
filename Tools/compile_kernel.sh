@@ -1,0 +1,2 @@
+/usr/local/cuda/bin/nvcc -m64 -c -ptx -std=c++11 -arch sm_35 -ccbin g++ --compiler-options -fPIC,-fopenmp,-std=c++11 --ptxas-options=-v -I/scratch/johannes/SciPAL/include -I/usr/local/cuda/include -I/usr/local/cuda/sdk/shared/inc -I/usr/local/cuda/include -I/usr/local/cuda/samples/common/inc/ -I/usr/local/cuda/sdk/CUDALibraries/common/inc/ -I/scratch/johannes/SciPAL/include -I/scratch/johannes/SciPAL/ -I/usr/local/dealii/include -o prop_kernel.ptx prop_kernel.cu
+
