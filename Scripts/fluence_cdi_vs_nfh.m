@@ -1,4 +1,7 @@
 %% play with dose in CDI / Holography
+% change folder to Scripts before executing, sadly one can not find out
+% in Matlab where a plain script lies in the filesysytem :(
+% http://de.mathworks.com/matlabcentral/newsreader/view_thread/269433
 working_dir = '.';
 cd(working_dir)
 %data dir
@@ -28,8 +31,7 @@ p.height2 = 1024;
 p.rec_width = 1024;
 p.rec_height = 1024;
 
-p.F = 1e-3;
-p.num_photons = 200;
+p.F = 1e-3;iaepns = 200;
 p.b_0 = 0.99;
 p.b_m = 0.75;
 p.b_s = 150;
@@ -82,7 +84,7 @@ if(1)
         p.num_iterations, p.F, p);
 end
 
-if(0) %use HIO
+if(1) %use HIO
     hio_settings = hio_fresnel();
     hio_settings.use_gpu = 1;
     hio_settings.purephase_assumption = 1;
@@ -180,3 +182,4 @@ figure;
 imagesc(angle(mid(CDI_rec{1},p)))
 title('Result of CDI reconstruction')
 c = colorbar; c.Label.String = 'Phase (rad)';
+

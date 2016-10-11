@@ -55,6 +55,10 @@ for ii = 1:iterations
     psi = (b/2) * (psi + psi_old) + (1 -b)*P_M;
 
 end
+% P_M
+    psi = prop.propTF(psi);
+    psi(Amp_valid) = psi(Amp_valid)./ abs(psi(Amp_valid)) .* M(Amp_valid);psi = psi./ abs(psi) .* M;
+    psi = prop_back.propTF(psi);
 
     result = gather(psi);
     close(h);
