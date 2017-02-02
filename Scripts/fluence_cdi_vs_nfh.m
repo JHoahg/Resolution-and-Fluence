@@ -22,6 +22,7 @@ cmd = sprintf(['axis image; colorbar;  set(gcf,''PaperPosition'',[0 0 5 5], ''Pa
     ' set(gca,''xtick'',[],''ytick'',[])']);
 set(0,'DefaultImageCreateFcn', cmd)
 set(groot,'defaultLineLineWidth',1.5)
+close 1
 clear cmap cmd;
 %% Simulation parameters
 p.width = 512;
@@ -182,4 +183,3 @@ figure;
 imagesc(angle(mid(CDI_rec{1},p)))
 title('Result of CDI reconstruction')
 c = colorbar; c.Label.String = 'Phase (rad)';
-

@@ -17,8 +17,14 @@ Amp_valid = gpuArray(p.Amp_valid);
 psi = gpuArray(psi);
 
 % Propagator objects
-prop = PropagatorGPU(F, F, size(M,2), size(M,1));
-prop_back = PropagatorGPU(-F, -F, size(M,2), size(M,1));
+if(isfield(p,'oversample') == 0)
+    warning('using default oversampling factor = 1.');
+    oversample = 1;
+else
+    oversample = p.oversample;
+end
+prop = PropagatorGPU(F, F, size(M,2), size(M,1), oversample);
+prop_back = PropagatorGPU(-F, -F, size(M,2), size(M,1), oversample);
 
 b_0 = p.b_0;
 b_m = p.b_m;
@@ -36,7 +42,8 @@ for ii = 1:iterations
     
     % P_M
     psi = prop.propTF(psi);
-    psi(Amp_valid) = psi(Amp_valid)./ abs(psi(Amp_valid)) .* M(Amp_valid);psi = psi./ abs(psi) .* M;
+    psi(Amp_valid) = psi(Amp_valid)./ abs(psi(Amp_valid)) .* M(Amp_valid);
+    psi = psi./ abs(psi) .* M;
     P_M = prop_back.propTF(psi);
     
     % Reflection on M
@@ -46,7 +53,7 @@ for ii = 1:iterations
     % pure phase constraint
     psi(supp) = exp(1i .* angle(R_M(supp)));
     % support and negativity constraint
-    psi(~supp | angle(psi) > 0) = 1;
+    psi(~supp | angle(psi) < 0) = 1;
         
     % Reflect on S
     psi = 2*psi - R_M;
