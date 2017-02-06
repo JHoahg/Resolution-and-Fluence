@@ -29,7 +29,7 @@ p.measure_resolution_FRC = 1;
 p.measure_delta = 0;
 %% Sample Setup
 % for kk = 1:numel(gauss)
-if(1) %dicty sketch
+if(0) %dicty sketch
     sample = prepare_probe('dicty_sketch.png', 'dicty_sketch.png',  0, 0.1, 1, 1, p, 0);
     sample = abs(sample) .* exp(1i.*(angle(conj(sample))));
     p.supp = load('support_dicty_ff.mat');
@@ -43,8 +43,17 @@ if(0) % use binary bitmap
     sample = binary_bitmap(10, 10, -1, upscale, p.rec_height, p.rec_width);
     p.supp = ones(10*upscale, 10*upscale);
     p.supp(1:floor(10*upscale/2), 1:ceil(10*upscale/2)) = 0;
+%     p.width = 110;
+%     p.height = p.width;
 end
 
+
+if(1) %mandrill dürer
+    sample = prepare_probe('mandrill.png', 'durer.png',  -0.4, 0.4, 0.8, 1.2, p, 0);
+    sample = abs(sample) .* exp(1i.*(angle(conj(sample))));
+    p.supp = ones(size(sample));
+    
+end
 p.supp = pad_to_size(p.supp, p.rec_height, p.rec_width, 'zero');
 
 figure()
@@ -74,11 +83,11 @@ figure; imagesc(log10(abs(id_FT)));
 % p.num_photons = [1:10:90 100:100:2000 3000:1000:20000];
 % p.num_photons = [1:0.5:20 21:45 70:25:900 1000:500:2500];
 % p.num_photons = [1:0.5:10 20:5:100 200:100:2000];
-p.num_photons = [10.^[0.5:0.1:4.5]];
+p.num_photons = [10.^[0.1:0.1:4.5]];
 
 skip = 1;
 
-p.repetitons_per_noise = 50;
+p.repetitons_per_noise = 2;
 % resolution = zeros(numel(p.num_photons), 2, p.repetitons_per_noise, 'distributed');
 resolution = zeros(numel(p.num_photons), 2, p.repetitons_per_noise);
 % reconstructions = zeros( numel(p.num_photons), repetitons_per_noise, p.width * p.height, 'distributed');
@@ -89,19 +98,20 @@ gauss = [0];
 tic
 for ii = 1:skip:numel(p.num_photons)
     photons = p.num_photons(ii)
-    ang_sample = angle(sample);
+    ang_sample = angle(mid(sample,p));
     %% holo
     if(1)
 %         if(p.direct_propagation)
 %             inv_prop = PropagatorGPU(-p.F, -p.F, p.width2, p.height2,1);
 %         end
 %                 
-        parfor jj = 1:p.repetitons_per_noise
-%          for jj = 1:p.repetitons_per_noise
+%         parfor jj = 1:p.repetitons_per_noise
+         for jj = 1:p.repetitons_per_noise
             holo = imnoise( (id_holo*photons.* numel(id_holo))*1e-12, 'poisson')*1e12;
             holo(holo == 0) = 2*eps;
+            keyboard;
             holo = holo ./ sum(holo(:)) .* numel(holo);
-            
+
             if(p.direct_propagation)
                 inv_prop = PropagatorGPU(-p.F, -p.F, p.width2, p.height2,1);
                 holo = sqrt(holo) .* exp(1i .* id_holo_phases);
@@ -118,12 +128,13 @@ for ii = 1:skip:numel(p.num_photons)
                 
                 figure(4);
                 imagesc(abs(mid(angle(holo_rec) - angle(sample), p)));
+                drawnow;
             end
             
             if(p.measure_resolution_FRC)
                 
                 frc_holo_to_ori = FSC(ang_sample,...
-                    angle((holo_rec)), p);
+                    angle(mid(holo_rec,p)), p);
                 
                 [x0, y0, iout, jout ] = intersections(frc_holo_to_ori.nu(cut_off:end),...
                     abs(frc_holo_to_ori.frc(cut_off:end)),...
@@ -146,8 +157,8 @@ for ii = 1:skip:numel(p.num_photons)
     
     %% CDI
     if(1)
-%         parfor jj = 1:p.repetitons_per_noise
-        for jj = 1:p.repetitons_per_noise
+        parfor jj = 1:p.repetitons_per_noise
+%         for jj = 1:p.repetitons_per_noise
             
             FT = imnoise((id_FT * photons .* numel(id_FT))*1e-12, 'poisson')*1e12;
             FT(FT == 0) = 2*eps;
@@ -165,11 +176,11 @@ for ii = 1:skip:numel(p.num_photons)
             
             if(p.measure_resolution_FRC)
                 
-                [err] = dftregistration(fft2(angle(CDI_rec)),...
+                [err] = dftregistration(fft2(angle(mid(CDI_rec,p))),...
                     fft2(ang_sample), 10);
                 aligned_sample = circshift_sp(ang_sample, [err(3), err(4)]);
                 
-                frc_CDI_to_ori = FSC(angle((CDI_rec)), aligned_sample, p);
+                frc_CDI_to_ori = FSC(angle(mid(CDI_rec,p)), aligned_sample, p);
                                 
                 [x0, y0, iout,jout ] = intersections(frc_CDI_to_ori.nu(cut_off:end),...
                     abs(frc_CDI_to_ori.frc(cut_off:end)),...
@@ -196,7 +207,7 @@ for ii = 1:skip:numel(p.num_photons)
                 drawnow;
                 if(p.measure_resolution_FRC)
                     figure(3);
-                    imagesc(abs(mid(angle(CDI_rec) - (aligned_sample), p)));
+                    imagesc(abs(mid(angle(CDI_rec),p) - mid(aligned_sample, p)));
                 end
             end
             

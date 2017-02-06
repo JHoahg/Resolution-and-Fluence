@@ -17,12 +17,12 @@ clear path
 set(0,'DefaultFigureColor','w')
 cmap = flipud(colormap('bone(512)'));
 set(0,'DefaultFigureColormap', cmap);
+close 0
 
 cmd = sprintf(['axis image; colorbar;  set(gcf,''PaperPosition'',[0 0 5 5], ''PaperSize'', [5 5]);',...
     ' set(gca,''xtick'',[],''ytick'',[])']);
 set(0,'DefaultImageCreateFcn', cmd)
 set(groot,'defaultLineLineWidth',1.5)
-close 1
 clear cmap cmd;
 %% Simulation parameters
 p.width = 512;
@@ -32,7 +32,8 @@ p.height2 = 1024;
 p.rec_width = 1024;
 p.rec_height = 1024;
 
-p.F = 1e-3;iaepns = 200;
+p.F = 1e-3;
+p.num_photons = 200;
 p.b_0 = 0.99;
 p.b_m = 0.75;
 p.b_s = 150;
