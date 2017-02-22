@@ -10,6 +10,8 @@ h = waitbar(0, 'progress');
 
 % get input arrays and put them on GPU
 M = gpuArray(M);
+%is used in support constraint to ensure energy conservation
+mean_amplitude = mean(M(:));
 supp = gpuArray(logical(p.supp));
 
 % Amp_valid can be used to discriminate bad pixels
@@ -51,9 +53,9 @@ for ii = 1:iterations
     
     %project S
     % pure phase constraint
-    psi(supp) = exp(1i .* angle(R_M(supp)));
+    psi(supp) = mean_amplitude .* exp(1i .* angle(R_M(supp)));
     % support and negativity constraint
-    psi(~supp | angle(psi) < 0) = 1;
+    psi(~supp | angle(psi) > 0) = mean_amplitude;
         
     % Reflect on S
     psi = 2*psi - R_M;
@@ -64,7 +66,8 @@ for ii = 1:iterations
 end
 % P_M
     psi = prop.propTF(psi);
-    psi(Amp_valid) = psi(Amp_valid)./ abs(psi(Amp_valid)) .* M(Amp_valid);psi = psi./ abs(psi) .* M;
+    psi(Amp_valid) = psi(Amp_valid)./ abs(psi(Amp_valid)) .* M(Amp_valid);
+%     psi = psi./ abs(psi) .* M;
     psi = prop_back.propTF(psi);
 
     result = gather(psi);
